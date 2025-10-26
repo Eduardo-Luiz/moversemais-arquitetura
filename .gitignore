@@ -1,0 +1,35 @@
+# OS Files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+
+# Dependencies
+node_modules/
+.gradle/
+
+# Build outputs
+build/
+dist/
+out/
+target/
+*.class
+*.jar
+*.war
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
