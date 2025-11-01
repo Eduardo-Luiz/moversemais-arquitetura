@@ -398,19 +398,141 @@ mv Development/TODO/026__User-Service-Lead-Management.md \
 Ao finalizar, documente aqui:
 
 ### **Decisões Técnicas Tomadas:**
-(Você preenche)
+
+**1. Estrutura de Pacotes**
+- Seguiu padrão existente: `entity/`, `repository/`, `service/`, `controller/`, `dto/`
+- DTOs em arquivo separado `LeadDtos.kt` (consistente com `LGPDDtos.kt`, `SyncDtos.kt`)
+
+**2. Enums para Source e Status**
+- Criados `LeadSource` e `LeadStatus` como enums dentro de `Lead.kt`
+- Benefício: Type-safety, validação automática pelo Kotlin, sem magic strings
+
+**3. Validação em Duas Camadas**
+- **Bean Validation** (`@Email`, `@NotBlank`, `@Pattern`) no DTO para validações básicas
+- **Regras de negócio** no Service (`validateLeadRequest`) para validações complexas
+- Seguindo política AGENTS.md: Controller delega, Service valida
+
+**4. Comportamento Idempotente**
+- Email duplicado retorna HTTP 200 OK (não 409 Conflict)
+- Decisão: UX positiva, evita erro no frontend
+- Campo `isNewLead` indica se foi criado ou já existia
+
+**5. Hash SHA-256**
+- Implementado método privado `hashEmail()` no Service
+- Email normalizado (lowercase + trim) antes do hash
+- Consistente com padrão da entidade `User`
+
+**6. Logs Estruturados**
+- Prefixo `[LEAD]` para facilitar busca
+- Apenas hash do email nos logs (LGPD compliance)
+- Níveis: INFO para operações, WARN para avisos, DEBUG para desenvolvimento
+
+**7. Swagger/OpenAPI**
+- Annotations completas: `@Operation`, `@ApiResponses`, `@Tag`
+- Documentação clara de status codes (200, 201, 400, 500)
+- Schemas para request/response
 
 ### **Estrutura Criada:**
-(Liste arquivos criados)
+
+```
+src/main/resources/db/migration/
+└── V3__Create_leads_table.sql              # Migration Flyway
+
+src/main/kotlin/com/moversemais/user/
+├── entity/
+│   └── Lead.kt                              # Entity + enums (LeadSource, LeadStatus)
+├── repository/
+│   └── LeadRepository.kt                    # Spring Data JPA
+├── service/
+│   └── LeadService.kt                       # Lógica de negócio
+├── dto/
+│   └── LeadDtos.kt                          # RegisterLeadRequest/Response + LeadDetails
+└── controller/
+    └── LeadController.kt                    # REST endpoints
+```
+
+**Total:** 6 arquivos criados, 390 linhas adicionadas
 
 ### **Testes Realizados:**
-(Liste cenários testados)
+
+**✅ Teste 1: Registrar lead novo**
+```bash
+POST /api/v1/leads
+Body: {"email": "teste@moversemais.com", "optInPlatformNews": true, "optInBlogNews": true, "source": "ASSESSMENT"}
+Resultado: HTTP 201 Created
+Response: {"id": "05ed6d82-...", "message": "Lead registrado com sucesso", "isNewLead": true}
+```
+
+**✅ Teste 2: Registrar email duplicado (idempotência)**
+```bash
+POST /api/v1/leads (mesmo email)
+Resultado: HTTP 200 OK
+Response: {"id": "05ed6d82-...", "message": "Lead registrado com sucesso", "isNewLead": false}
+```
+
+**✅ Teste 3: Email inválido**
+```bash
+POST /api/v1/leads
+Body: {"email": "email-invalido", ...}
+Resultado: HTTP 400 Bad Request
+Response: Bean Validation error (Email inválido)
+```
+
+**✅ Teste 4: Verificação no banco**
+```sql
+SELECT email FROM leads;
+Resultado: Email criptografado (Base64): "UvEuIbNBuAnE1Fe4Jd830qA1WXP3YtpdO0Z5HtGU4Gc="
+```
+
+**✅ Teste 5: Swagger**
+```
+URL: http://localhost:8083/swagger-ui/index.html
+Resultado: Documentação completa do endpoint visível e funcional
+```
 
 ### **Dificuldades Encontradas:**
-(Se houver)
+
+**Nenhuma dificuldade significativa.**
+
+O código existente estava muito bem estruturado e serviu como referência perfeita:
+- `User.kt` para estrutura de entidade
+- `UserService.kt` para padrão de service
+- `LGPDController.kt` para padrão de controller
+- `EncryptedStringConverter` já pronto para uso
 
 ### **Melhorias Implementadas:**
-(Além do requisitado)
+
+**1. Métodos Auxiliares na Entity**
+```kotlin
+fun updateOptIns(platformNews: Boolean, blogNews: Boolean)
+fun updateStatus(newStatus: LeadStatus)
+```
+Benefício: Facilita futuras atualizações mantendo `updatedAt` sincronizado
+
+**2. Repository com Métodos Extras**
+```kotlin
+fun findBySource(source: LeadSource): List<Lead>
+fun findByStatus(status: LeadStatus): List<Lead>
+fun findByOptInPlatformNewsTrue(): List<Lead>
+fun findByOptInBlogNewsTrue(): List<Lead>
+```
+Benefício: Queries prontas para futuros dashboards e campanhas de email
+
+**3. Validação Permissiva de Opt-ins**
+```kotlin
+if (!request.optInPlatformNews && !request.optInBlogNews) {
+    logger.warn("[LEAD] Lead sem nenhum opt-in ativado - permitindo mas registrando warning")
+}
+```
+Benefício: Não bloqueia cadastro, mas registra para análise
+
+**4. DTO LeadDetails (Futuro)**
+- Preparado para futuras funcionalidades de listagem/visualização de leads
+- Evita expor entidade diretamente
+
+**5. Comentários de Documentação**
+- Javadoc/KDoc em métodos principais do Service
+- Explicação das regras de negócio implementadas
 
 ---
 
