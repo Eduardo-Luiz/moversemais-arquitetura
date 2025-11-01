@@ -477,27 +477,213 @@ mv Development/TODO/025__BFF-Mutation-Register-Lead.md \
 
 ---
 
-## 📊 OUTPUT ESPERADO
-
-Ao finalizar, documente aqui:
+## 📊 OUTPUT DO DESENVOLVEDOR
 
 ### **Decisões Técnicas Tomadas:**
-(Você preenche)
+
+**1. Estrutura de Tipos GraphQL:**
+- Tipo `LeadResponse` com campos: `success: Boolean!`, `message: String!`, `leadId: ID` (nullable)
+- Mutation `registerLead` com argumentos diretos (não InputType) para simplicidade
+- Padrão consistente com outros Response types do schema
+
+**2. Resolver em Arquivo Separado:**
+- Criado `leads.ts` isolado (não misturado com objectives/assessment)
+- Facilita manutenção e escalabilidade futura
+- Separa responsabilidades por domínio
+
+**3. Validação de Email no BFF:**
+- Regex: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
+- Evita chamada desnecessária ao User Service
+- Resposta mais rápida ao usuário
+
+**4. Mascaramento de Email em Logs (LGPD):**
+- `user@example.com` → `u***@example.com`
+- Segurança: logs não expõem dados sensíveis
+- Ainda identificável para debugging
+
+**5. Tratamento de Erros por Status Code:**
+- 401 (API Key) → Erro crítico logado, mensagem genérica
+- 400 (Validação) → Mensagem clara
+- 500 (Servidor) → Mensagem temporária
+- Email inválido → Validação local
+- Nunca expor detalhes técnicos ao frontend
+
+**6. Interface UserServiceLeadResponse:**
+- **CORRIGIDA** após testes locais
+- Formato real: `{ id, message, isNewLead, createdAt }`
+- Antes esperava: `{ id, email, optInPlatformNews, ... }`
 
 ### **Estrutura Criada:**
-(Liste arquivos criados/modificados)
+
+**Arquivos Criados:**
+- ✅ `app/api/graphql/resolvers/leads.ts` (221 linhas) - Resolver completo
+
+**Arquivos Modificados:**
+- ✅ `app/api/graphql/schema/types.ts` - Adicionado `LeadResponse` e mutation `registerLead`
+- ✅ `app/api/graphql/resolvers/index.ts` - Registrado `leadsResolvers.Mutation`
+
+**Commits:**
+- `ecfe131` - feat(bff): adiciona mutation registerLead
+- `be57e0c` - fix: corrigir interface UserServiceLeadResponse (após testes)
 
 ### **Padrão Seguido:**
-(Como seguiu oauth-service.ts)
+
+**✅ Seguido RIGOROSAMENTE oauth-service.ts (linhas 252-265):**
+
+```typescript
+// Headers enviados ao User Service (idêntico ao padrão):
+headers: {
+  'Content-Type': 'application/json',
+  'X-Internal-Service-Key': internalServiceKey,  // ← OBRIGATÓRIO
+  'X-Request-Id': crypto.randomUUID(),
+  'X-Timestamp': new Date().toISOString(),
+}
+
+// Body com source fixo:
+body: JSON.stringify({
+  email,
+  optInPlatformNews,
+  optInBlogNews,
+  source: 'ASSESSMENT'  // ← Fixo (decisão de negócio)
+})
+```
+
+**✅ Source Fixo:**
+- Sempre `source: 'ASSESSMENT'`
+- Frontend não controla source
+
+**✅ Logs Estruturados:**
+- 🔐 Segurança/Autenticação
+- 🔍 Debug/Info
+- ✅ Sucesso
+- ❌ Erro
+- `[BFF-LEAD]` Prefixo para filtrar
 
 ### **Testes Realizados:**
-(Liste cenários testados)
+
+**✅ Teste 1: Email Válido**
+```graphql
+mutation {
+  registerLead(
+    email: "gabriela.teste@moversemais.com"
+    optInPlatformNews: true
+    optInBlogNews: false
+  ) {
+    success
+    message
+    leadId
+  }
+}
+```
+**Resultado:**
+```json
+{
+  "success": true,
+  "message": "Lead registrado com sucesso! Você será notificado quando o assessment estiver disponível.",
+  "leadId": "55f9c3be-ccc3-4362-b818-abe7b4eaf0e5"
+}
+```
+
+**✅ Teste 2: Email Inválido**
+```graphql
+mutation {
+  registerLead(
+    email: "email-invalido"
+    optInPlatformNews: true
+    optInBlogNews: true
+  ) {
+    success
+    message
+    leadId
+  }
+}
+```
+**Resultado:**
+```json
+{
+  "success": false,
+  "message": "Email inválido. Por favor, forneça um email válido.",
+  "leadId": null
+}
+```
+
+**✅ Teste 3: Email Duplicado (Idempotência)**
+```graphql
+mutation {
+  registerLead(
+    email: "gabriela.teste@moversemais.com"  # Mesmo do teste 1
+    optInPlatformNews: false
+    optInBlogNews: true
+  ) {
+    success
+    message
+    leadId
+  }
+}
+```
+**Resultado:**
+```json
+{
+  "success": true,
+  "message": "Lead registrado com sucesso! Você será notificado quando o assessment estiver disponível.",
+  "leadId": "55f9c3be-ccc3-4362-b818-abe7b4eaf0e5"  // ← MESMO ID (idempotente)
+}
+```
+
+**✅ Integração BFF ↔ User Service:**
+- User Service rodando (porta 8083)
+- BFF rodando (porta 3001)
+- X-Internal-Service-Key enviado corretamente
+- Headers (X-Request-Id, X-Timestamp) enviados
+- Body com source: "ASSESSMENT" enviado
+- User Service aceitou (não retornou 401)
+- Idempotência funcionando (mesmo leadId retornado)
+
+**✅ Logs do BFF:**
+```
+🔍 [BFF-LEAD] Iniciando registro de lead
+🔍 [BFF-LEAD] Email: g***@moversemais.com
+🔐 [BFF-LEAD] Chamando User Service INTERNO
+🔍 [BFF-LEAD] URL: http://localhost:8083
+✅ [BFF-LEAD] Lead registrado com sucesso: {
+  leadId: '55f9c3be-ccc3-4362-b818-abe7b4eaf0e5',
+  isNewLead: true,
+  message: 'Lead registrado com sucesso'
+}
+```
 
 ### **Dificuldades Encontradas:**
-(Se houver)
 
-### **Melhorias Implementadas:**
-(Além do requisitado)
+**1. Interface UserServiceLeadResponse Incorreta:**
+- **Problema:** Interface não correspondia ao formato real do User Service
+- **Esperava:** `{ id, email, optInPlatformNews, optInBlogNews, source, createdAt, updatedAt }`
+- **Formato Real:** `{ id, message, isNewLead, createdAt }`
+- **Solução:** Corrigida após testes locais (commit `be57e0c`)
+- **Lição:** **SEMPRE TESTAR** integração local antes de considerar pronto
+
+**2. Falha Inicial:**
+- **Erro:** Não testei a integração local antes de considerar o card completo
+- **Correção:** Eduardo me alertou corretamente - devo SEMPRE testar
+- **Aprendizado:** Como Guardiã da Arquitetura, testes são OBRIGATÓRIOS
+
+### **Melhorias Implementadas (Além do Requisitado):**
+
+1. ✅ **Mascaramento de Email em Logs** - LGPD compliance
+2. ✅ **Validação de Email no BFF** - Performance (evita chamada desnecessária)
+3. ✅ **Documentação inline completa** - JSDoc detalhado no código
+4. ✅ **Helper functions isoladas** - `maskEmail()`, `isValidEmail()`
+5. ✅ **Tratamento de erros específico por status** - 401, 400, 500
+6. ✅ **Logs estruturados com contexto** - leadId, isNewLead, message
+7. ✅ **Error handling robusto** - Try-catch com fallback genérico
+8. ✅ **Testes completos realizados** - 3 cenários + integração validada
+
+---
+
+**Implementado por:** Gabriela (IA Desenvolvedora BFF)  
+**Data de Implementação:** 01/11/2025  
+**Commits:** ecfe131, be57e0c  
+**Branch:** feature/bff-lead-mutation  
+**Status:** ✅ TESTADO E VALIDADO
 
 ---
 

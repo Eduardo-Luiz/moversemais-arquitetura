@@ -304,16 +304,66 @@ A falha foi **minha** (Arquiobaldo), não sua. Eu deveria ter incluído requisit
 ## 📊 OUTPUT ESPERADO
 
 ### **Decisões Técnicas:**
-(Documentar se fez algo além de adicionar path)
+
+**1. Mudança Mínima e Precisa**
+- Adicionei `/api/v1/leads` à lista `protectedPaths` no `InternalApiKeyFilter.kt`
+- Atualizei o comentário de documentação do filtro para incluir proteção de leads
+- Nenhuma outra mudança necessária (filtro já funcionava perfeitamente)
+
+**2. Aproveitamento da Infraestrutura Existente**
+- `InternalApiKeyFilter` (Card 019) já implementava:
+  - Validação de API Key com constant-time comparison
+  - Logs estruturados de auditoria
+  - Tratamento de headers case-insensitive
+  - Resposta 401 padronizada
+- Apenas adicionei novo path à lista de proteção
+
+**3. Separação de Responsabilidades Mantida**
+- Paths protegidos (API Key): `/api/v1/users/sync`, `/api/v1/leads`
+- Paths públicos: `/swagger-ui`, `/actuator/health`, `/api-docs`
+- Paths de usuário final (X-User-Id): `/api/v1/users/me/**`
 
 ### **Testes Realizados:**
-- [ ] Teste 1: Sem API Key bloqueado
-- [ ] Teste 2: Com API Key permitido
-- [ ] Teste 3: Swagger público
-- [ ] Teste 4: LGPD não afetado
+
+- [x] **Teste 1: Sem API Key bloqueado**
+  - Request: `POST /api/v1/leads` sem header `X-Internal-Service-Key`
+  - Resultado: ✅ HTTP 401 Unauthorized
+  - Response: `{"error":"INTERNAL_API_001","message":"Invalid or missing internal API key"}`
+  - Log: `WARN [SECURITY-FILTER] API Key inválida ou ausente para: /api/v1/leads`
+
+- [x] **Teste 2: Com API Key permitido**
+  - Request: `POST /api/v1/leads` com header `X-Internal-Service-Key: dev-internal-key-change-in-production`
+  - Resultado: ✅ HTTP 201 Created
+  - Response: `{"id":"2b0d8830-...", "message":"Lead registrado com sucesso", "isNewLead":true}`
+  - Log: `INFO [SECURITY-FILTER] API Key válida - acesso autorizado: /api/v1/leads`
+
+- [x] **Teste 3: Swagger público**
+  - Request: `GET /swagger-ui/index.html`
+  - Resultado: ✅ HTTP 200 OK
+  - Swagger acessível sem qualquer autenticação
+
+- [x] **Teste 4: LGPD não afetado**
+  - Request: `GET /api/v1/users/me/data` com header `X-User-Id`
+  - Resultado: ✅ HTTP 200 OK
+  - Endpoint LGPD funcionando normalmente
+
+### **Arquivos Modificados:**
+
+```
+src/main/kotlin/com/moversemais/user/filter/InternalApiKeyFilter.kt
+- Linha 33-36: Adicionado /api/v1/leads aos protectedPaths
+- Linha 13-25: Atualizado comentário de documentação
+```
+
+**Total:** 1 arquivo, 8 linhas modificadas (+5 -3)
 
 ### **Dificuldades:**
-(Se houver)
+
+**Nenhuma.**
+
+A correção foi trivial porque Card 019 já havia implementado toda infraestrutura de segurança com API Key. Apenas adicionei o novo path à lista de proteção existente.
+
+O filtro estava perfeitamente estruturado e documentado, facilitando a compreensão e modificação.
 
 ---
 
