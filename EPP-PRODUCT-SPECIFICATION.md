@@ -10,20 +10,50 @@
 
 ## 🎯 **Visão do Produto**
 
-### **Missão**
-Promover a **Evolução Pessoal Permanente**, transformando o modo como pessoas e famílias aprendem. A EPP é um ecossistema de aprendizado contínuo que converte conteúdos dispersos — cursos, vídeos, livros ou anotações — em **planos de estudo estruturados, personalizados e práticos**, ajudando cada indivíduo a **absorver, aplicar e reter** conhecimento de forma real.
+### **Missão Transformadora**
+**Mudar a forma como o mundo aprende**, extraindo o melhor da Inteligência Artificial para capacitar pessoas a evoluírem permanentemente. A EPP é um ecossistema de aprendizado contínuo que converte conteúdos dispersos — cursos, vídeos, livros ou anotações — em **planos de estudo estruturados, personalizados e práticos**, ajudando cada indivíduo a **absorver, aplicar e reter** conhecimento de forma real e eficiente.
 
-### **Visão**
-A EPP é mais do que uma plataforma de estudo. É um **companheiro de evolução**. Um ambiente onde aprender volta a ter propósito, e onde cada passo de aprendizado é uma conquista de vida. Seu valor está em **simplificar o que é complexo** e **transformar o saber em ação**, todos os dias.
+### **Visão Ambiciosa**
+Vivemos na era em que **a IA transformará todos os trabalhos**. Não se trata de "IA versus Humanos", mas sim de **humanos preparados versus humanos obsoletos**. 
+
+> **A IA não vai substituir pessoas. A IA vai substituir pessoas que não aprendem.**
+
+A EPP existe para garantir que **ninguém fique para trás**. Queremos capacitar milhões de pessoas a aprenderem de forma eficiente, dominarem novos contextos e assumirem papéis que a IA não pode desempenhar: **liderança, criatividade, estratégia, empatia e inovação**.
+
+**A EPP não é só uma plataforma de estudo. É um movimento de preparação para o futuro.**
 
 ### **Propósito Central**
-> **"Estudar menos, aprender mais, e aplicar melhor."**
+> **"Estudar menos, aprender mais, aplicar melhor. Evoluir para liderar a era da IA."**
+
+### **Manifesto EPP**
+1. **A IA está mudando o mundo** - Os trabalhos de hoje não existirão amanhã
+2. **Aprendizado é sobrevivência** - Quem não evolui, fica obsoleto
+3. **Conteúdo é abundante, aprendizado é raro** - Temos 30 cursos, mas zero aplicação
+4. **Aprender errado é desperdiçar vida** - Estudar sem estrutura é ilusão de progresso
+5. **Famílias que aprendem juntas, vencem juntas** - Evolução coletiva é o novo padrão
+6. **IA deve servir humanos, não substituí-los** - Usamos IA para capacitar, não para alienar
 
 ---
 
 ## 🔥 **O Problema**
 
-### **Contexto Moderno**
+### **Contexto: A Era da IA e a Obsolescência Humana**
+
+**A IA está transformando o mundo do trabalho:**
+- Desenvolvedores escrevem código com IA (GitHub Copilot, Cursor)
+- Designers criam arte com IA (Midjourney, DALL-E)
+- Escritores produzem conteúdo com IA (ChatGPT, Claude)
+- Analistas processam dados com IA (GPT-4, AutoML)
+- Advogados pesquisam jurisprudência com IA
+- Médicos diagnosticam com IA
+
+**O que separa quem prospera de quem fica obsoleto?**
+> **Aprendizado eficiente e contínuo.**
+
+Profissionais que aprendem rápido, dominam novos contextos e aplicam conhecimento **lideram equipes de IA**. Os que não aprendem, **são substituídos por IA**.
+
+### **O Paradoxo do Aprendizado Moderno**
+
 Vivemos em uma era de **excesso de conteúdo** e **escassez de aprendizado real**:
 
 - **Cursos acumulados**: Pessoas compram 10, 20, 30 cursos e não absorvem nenhum
@@ -32,9 +62,20 @@ Vivemos em uma era de **excesso de conteúdo** e **escassez de aprendizado real*
 - **Falta de estrutura**: ChatGPT ajuda, mas é fragmentado e sem continuidade
 - **Zero prática**: Consumir ≠ Aprender ≠ Aplicar
 - **Provas e exames**: Estudantes com 50 páginas para absorver em dias
+- **Aprendizado ineficiente**: 80% do tempo estudando, 20% realmente aprendendo
 
 ### **Problema Central**
-**As pessoas não têm um sistema estruturado para transformar conteúdo em conhecimento aplicado.**
+**As pessoas não têm um sistema estruturado para aprender de forma eficiente e se prepararem para papéis que a IA não pode desempenhar.**
+
+**O que a IA NÃO pode fazer (e humanos precisam dominar):**
+- ✅ **Liderança** - Inspirar, motivar, construir culturas
+- ✅ **Estratégia** - Definir visão, tomar decisões complexas
+- ✅ **Criatividade** - Inovação disruptiva, pensamento lateral
+- ✅ **Empatia** - Conexão humana, inteligência emocional
+- ✅ **Ética** - Julgamento moral, valores humanos
+- ✅ **Contexto** - Compreensão profunda de domínios complexos
+
+**Para dominar essas habilidades, é preciso aprender MUITO e aprender BEM. A EPP existe para isso.**
 
 ### **Exemplos Reais (Contexto do Fundador)**
 
@@ -131,12 +172,30 @@ Vivemos em uma era de **excesso de conteúdo** e **escassez de aprendizado real*
 
 ### **Proposta de Valor**
 
-**Para** adultos profissionais, estudantes e famílias  
-**Que** acumulam conteúdo mas não aprendem de verdade  
-**A EPP** é uma plataforma de aprendizado contínuo  
-**Que** transforma conteúdos dispersos em planos estruturados, personalizados e práticos  
-**Diferente de** ChatGPT, Notion ou Anki  
-**Nosso produto** oferece **estrutura + prática + retenção + continuidade** em um único ecossistema orquestrado por agentes de IA especializados.
+**Para** pessoas que querem prosperar na era da IA  
+**Que** precisam aprender de forma eficiente para assumir papéis que IA não pode desempenhar  
+**A EPP** é uma plataforma de aprendizado contínuo potencializada por IA  
+**Que** transforma conteúdos dispersos em planos estruturados, personalizados e práticos, com foco em **absorção, aplicação e retenção**  
+**Diferente de** ChatGPT (fragmentado), Notion AI (sem estrutura de aprendizado), Anki (complexo), Udemy (passivo)  
+**Nosso produto** oferece **estrutura + prática + retenção + continuidade + orquestração de agentes de IA especializados** em um único ecossistema que prepara você para liderar na era da IA.
+
+### **Nossa Tese**
+
+> **"A IA vai dominar tarefas repetitivas. Humanos precisam dominar: liderança, criatividade, estratégia, empatia e contexto. Para isso, é preciso aprender MUITO, aprender BEM e aprender RÁPIDO. A EPP torna isso possível."**
+
+### **Diferencial Transformador**
+
+Não somos apenas uma ferramenta de estudo. Somos um **movimento de preparação para o futuro**.
+
+**Usamos IA para capacitar humanos a serem insubstituíveis:**
+- ✅ Agent Learn estrutura planos eficientes (10x mais rápido que manualmente)
+- ✅ Agent Practice gera exercícios personalizados (domínio real, não memorização)
+- ✅ Agent Scribe transcreve vídeos automaticamente (libera tempo para aprender)
+- ✅ Agent Coach acompanha e ajusta ritmo (consistência sustentável)
+- ✅ Agent Retention garante que você não esquece (revisão espaçada científica)
+- ✅ Agent Family conecta aprendizados (evolução coletiva)
+
+**Resultado:** Você aprende 5x mais rápido, retém 80% do conteúdo (vs 20% tradicional) e aplica no mundo real.
 
 ---
 
@@ -514,22 +573,48 @@ CREATE TABLE user_progress (
 
 ## 📊 **Métricas de Sucesso**
 
-### **Métricas de Produto (North Star)**
+### **🌟 North Star Metric (Métrica Estrela-Guia)**
+**Número de habilidades críticas dominadas por usuário/ano**
+
+**Por quê essa métrica?**
+Porque nosso propósito é **preparar pessoas para papéis que IA não pode desempenhar** (liderança, criatividade, estratégia, empatia, contexto). Medir "planos concluídos" é vanity metric. Medir "domínio real de habilidades" é impacto transformador.
+
+**Como medimos domínio?**
+- Plano concluído + Quizzes passados (>80%) + Exercícios práticos aplicados no mundo real
+
+**Meta:** 
+- v1: 2 habilidades/ano
+- v3: 5 habilidades/ano
+- v6: 10 habilidades/ano
+
+---
+
+### **Métricas de Produto (Impacto Real)**
 - **Planos concluídos por usuário/mês** - Meta: 2+ planos
-- **Retenção de conhecimento** - Meta: 70% após 30 dias (medido por quizzes)
-- **Tempo de uso semanal** - Meta: 5h/semana
+- **Retenção de conhecimento** - Meta: 80% após 30 dias (medido por quizzes)
+- **Aplicação prática** - Meta: 70% aplicam no trabalho/vida (pesquisa)
+- **Tempo de uso semanal** - Meta: 5h/semana (eficiente)
 - **Taxa de conclusão de planos** - Meta: 70%
+- **Velocidade de aprendizado** - Meta: 5x mais rápido que métodos tradicionais
 
 ### **Métricas de Engajamento**
 - **DAU/MAU** (Daily Active Users / Monthly) - Meta: 40%
-- **Streak médio** - Meta: 21 dias
-- **NPS** - Meta: 9+
+- **Streak médio** - Meta: 30 dias (consistência)
+- **NPS** - Meta: 9+ (promotores ativos)
+- **Tempo até primeiro "Aha!" moment** - Meta: < 7 dias
 
-### **Métricas de Negócio (v6)**
+### **Métricas de Transformação (Impacto no Mundo Real)**
+- **Promoções/aumentos conquistados** - Pesquisa qualitativa
+- **Projetos aplicados com sucesso** - Tracking de aplicação prática
+- **Notas/resultados melhorados** - Estudantes (antes/depois)
+- **Famílias aprendendo juntas** - % de contas familiares ativas
+
+### **Métricas de Negócio (v6 - Sustentabilidade)**
 - **MRR** (Monthly Recurring Revenue) - Meta: $50k/mês
 - **CAC** (Customer Acquisition Cost) - Meta: < $30
-- **LTV** (Lifetime Value) - Meta: > $500
+- **LTV** (Lifetime Value) - Meta: > $500 (usuários se tornam promotores)
 - **Churn** - Meta: < 5%/mês
+- **Viral Coefficient** - Meta: 1.5 (crescimento orgânico)
 
 ---
 
