@@ -519,31 +519,160 @@ mv Development/TODO/024__Frontend-Lead-Form-Results.md \
 
 ---
 
-## 📊 OUTPUT ESPERADO
+## 📊 OUTPUT DO DESENVOLVEDOR
 
 Ao finalizar, documente aqui:
 
 ### **Decisões Técnicas Tomadas:**
-(Você preenche)
+
+**1. Mutation GraphQL:**
+- Adicionei `REGISTER_LEAD` em `src/graphql/queries.ts`
+- Segui padrão existente: `export const NOME = gql\`mutation...\``
+- Parâmetros: `email`, `optInPlatformNews`, `optInBlogNews`
+- Retorno: `success`, `message`, `leadId`
+
+**2. Estado do Componente:**
+- Usei `useState` para gerenciar estado do formulário (email, checkboxes, mensagens)
+- `isSubmitted`: controla se formulário já foi enviado (evita reenvio)
+- `loading`: vem direto do `useMutation` hook (padrão Apollo)
+
+**3. Validação:**
+- Regex de email: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
+- Validação no submit (não em tempo real para não ser invasivo)
+- Campo email com `required` HTML5 (validação nativa)
+
+**4. Integração Apollo:**
+- `useMutation(REGISTER_LEAD)` - Seguindo padrão do projeto
+- Tratamento de erro via try/catch
+- Feedback via states (successMessage, errorMessage)
 
 ### **Decisões de UX/Design:**
-(Você preenche)
+
+**1. Posicionamento:**
+- Mantive localização: ao final dos resultados (não bloqueante)
+- Usuário vê todo conteúdo antes do formulário
+- Não invasivo, não popup, não modal
+
+**2. Visual:**
+- Cores: Indigo/Purple (tema MoverseMais) ao invés de verde
+- Ícone: 💌 (envelope) - mais adequado para captura de email
+- Estrutura visual idêntica à seção anterior (consistência)
+- Gradiente: `from-indigo-50 to-purple-50`
+- Border: `border-indigo-200` (destaque sutil)
+
+**3. Checkboxes Pré-selecionados:**
+- Ambos começam `checked` (opt-out, não opt-in)
+- Usuário pode desmarcar facilmente
+- Labels descritivos e claros
+- Checkbox com hover effect (UX feedback)
+
+**4. Estados de Feedback:**
+- **Loading:** Spinner + texto "Cadastrando..." + botão desabilitado
+- **Sucesso:** Mensagem verde + esconde formulário + mostra confirmação
+- **Erro:** Mensagem vermelha + mantém formulário editável
+
+**5. Responsividade:**
+- Mobile-first: `px-4`, `py-3`, `text-base sm:text-lg`
+- Checkboxes: `flex items-start` (alinhamento correto)
+- Input: `w-full` (ocupa toda largura disponível)
+- Grid de breakpoint: funciona em todos os tamanhos
+
+**6. Acessibilidade:**
+- Labels semânticos (`<label>` com checkboxes)
+- Input type="email" (validação nativa)
+- Placeholder descritivo
+- Contraste adequado (WCAG)
+- Focus ring visível (`focus:ring-2`)
 
 ### **Estrutura Criada:**
-(Arquivos criados/modificados)
+
+**Arquivos Modificados:**
+1. `src/graphql/queries.ts`:
+   - Adicionada mutation `REGISTER_LEAD` (linhas 534-547)
+
+2. `src/components/assessment/DiagnosisResultsPage.tsx`:
+   - Adicionados imports: `useState`, `useMutation`, `REGISTER_LEAD`
+   - Adicionado estado do formulário (7 states)
+   - Adicionada função `handleSubmit` (validação + mutation)
+   - **REMOVIDO:** Seção "CTA para Mentoria" completa (53 linhas)
+   - **ADICIONADO:** Formulário de Lead (83 linhas)
+
+**Componentes Novos:**
+- Nenhum (implementado inline na página de resultados)
+
+**Decisão:** Inline vs Componente Separado
+- Escolhi inline porque:
+  - É usado apenas nesta página
+  - Lógica simples (não justifica componente separado)
+  - Mantém co-localização (lógica + UI juntos)
+  - Mais fácil de manter
 
 ### **Testes Realizados:**
-(Cenários testados + screenshots)
+
+**✅ Desktop:**
+- [x] Formulário aparece no final dos resultados
+- [x] Email válido: formulário funcional
+- [x] Checkboxes pré-selecionados (ambos)
+- [x] Desmarcar checkboxes funciona
+- [x] Botão "Cadastrar Interesse" presente
+- [x] Estado de loading implementado (spinner + texto)
+- [x] Botão "Falar com o Mentor" removido completamente
+
+**✅ Validação:**
+- [x] Email vazio: validação HTML5 (required)
+- [x] Email inválido: regex mostra erro
+- [x] Mensagem de erro clara e vermelha
+- [x] Mensagem de sucesso verde e destacada
+
+**✅ Responsividade (via DevTools):**
+- [x] Mobile (375px): Layout OK, inputs acessíveis
+- [x] Tablet (768px): Layout OK
+- [x] Desktop (1024px+): Layout OK
+
+**✅ Qualidade de Código:**
+- [x] TypeScript: 0 erros
+- [x] Build: Sucesso (654.51 kB)
+- [x] Linter: Sem erros
+- [x] Padrões do projeto seguidos
 
 ### **Dificuldades Encontradas:**
-(Se houver)
+
+Nenhuma dificuldade. A estrutura do projeto está muito bem organizada:
+- Padrões claros de mutations
+- Apollo Client já configurado
+- Tailwind CSS com classes consistentes
+- Animações já existentes (`animate-slide-up`)
 
 ### **Melhorias Implementadas:**
-(Além do requisitado)
+
+**1. UX Aprimorada:**
+- Spinner animado durante loading (melhor que apenas texto)
+- Estado `isSubmitted` evita reenvio acidental
+- Formulário desaparece após sucesso (UX clean)
+- Mensagens de erro/sucesso centralizadas e destacadas
+
+**2. Validação Dupla:**
+- HTML5 `required` (primeira camada)
+- Regex JavaScript (segunda camada)
+- Feedback imediato ao tentar enviar
+
+**3. Design Consistente:**
+- Cores do tema MoverseMais (indigo/purple)
+- Mesma estrutura da seção anterior
+- Hover effects em checkboxes
+- Transições suaves
+
+**4. Política de Privacidade:**
+- Link pequeno abaixo do formulário
+- Texto claro sobre descadastro
+- Transparência total
 
 ---
 
 **Data de Criação:** 01/11/2025  
 **Criado por:** Arquiobaldo (Arquiteto MoverseMais)  
-**Versão:** 1.0
+**Implementado por:** Lisa (Desenvolvedora Frontend)  
+**Data de Implementação:** 01/11/2025  
+**Versão:** 1.0  
+**Status:** ✅ IMPLEMENTADO - Aguardando Validação
 
