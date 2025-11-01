@@ -166,25 +166,35 @@ mutation RegisterLead($email: String!, $optInPlatformNews: Boolean!, $optInBlogN
 
 ### **Arquivos para Estudar (OBRIGATÓRIO):**
 
-1. **Páginas de Resultado:**
-   - `src/pages/assessment/DiagnosisResultsPage.tsx` - Página de resultados V2
-   - `src/pages/assessment/ResultsPage.tsx` - Página de resultados V1 (se existir)
-   - Verificar qual está ativa
+1. **Páginas de Resultado (CRÍTICO - ESTUDAR PRIMEIRO):**
+   - `src/components/assessment/DiagnosisResultsPage.tsx` - **Página ativa (V2)**
+   - Linhas 177-230: Seção "CTA para Mentoria" - **DEVE SER SUBSTITUÍDA**
+   - Essa seção completa (todo o bloco) será removida e substituída pelo formulário de lead
 
-2. **Componentes de Formulário:**
-   - Buscar inputs, checkboxes, botões existentes no projeto
-   - Estudar padrão de validação usado
-   - Estudar padrão de feedback visual
+2. **Botão "Falar com Mentor" (REMOVER):**
+   - `DiagnosisResultsPage.tsx` linhas 210-223
+   - Botão WhatsApp com handler onClick
+   - **REMOVER TODO ESSE BLOCO** (linhas 177-230)
 
-3. **Integração GraphQL:**
-   - `src/graphql/queries.ts` ou `mutations.ts` - Padrão de mutations
-   - Estudar como outras mutations são chamadas (submitAssessment, etc.)
+3. **Padrão de Mutations GraphQL:**
+   - `src/graphql/queries.ts` - **TODAS as mutations estão aqui**
+   - Exemplos: `SUBMIT_ASSESSMENT_V2` (linha 11), `CREATE_OBJECTIVE` (linha 203)
+   - Padrão: `export const NOME = gql\`mutation...\``
+   - **ADICIONAR** `REGISTER_LEAD` seguindo esse padrão
 
-4. **Styling:**
-   - Verificar classes Tailwind usadas em cards/seções
-   - Estudar responsividade mobile (breakpoints)
+4. **Padrão de useMutation:**
+   - `src/components/assessment/ResponsiveAssessment.tsx` (linhas 1-50)
+   - Veja como importa: `import { useMutation } from '@apollo/client'`
+   - Veja como usa: `const [submitAssessment] = useMutation(SUBMIT_ASSESSMENT_V2)`
+   - **SEGUIR ESSE PADRÃO**
 
-5. **Documentação:**
+5. **Styling e Responsividade:**
+   - `DiagnosisResultsPage.tsx` - Classes Tailwind usadas
+   - Padrão: `bg-gradient-to-br`, `rounded-2xl`, `p-6 sm:p-10`
+   - Mobile-first: `text-base sm:text-lg`, `grid-cols-1 md:grid-cols-3`
+   - **SEGUIR ESSE PADRÃO DE CLASSES**
+
+6. **Documentação:**
    - `../moversemais-store-front/AGENTS.md` - Políticas do Frontend
    - `../moversemais-arquitetura/AGENTS.md` - Visão geral
 
@@ -199,36 +209,39 @@ mutation RegisterLead($email: String!, $optInPlatformNews: Boolean!, $optInBlogN
 ### **1. ESTUDAR (OBRIGATÓRIO - Antes de Codificar)**
 
 ```bash
-# Estudar estrutura do Frontend
 cd moversemais-store-front
-tree src/pages/assessment/
-tree src/components/
 
-# Analisar página de resultados
-cat src/pages/assessment/DiagnosisResultsPage.tsx
-# ou
-cat src/pages/assessment/ResultsPage.tsx
+# CRÍTICO: Analisar DiagnosisResultsPage.tsx
+cat src/components/assessment/DiagnosisResultsPage.tsx
 
-# Analisar mutations existentes
-cat src/graphql/queries.ts
-# ou
-cat src/graphql/mutations.ts
+# Localizar seção "CTA para Mentoria" (linhas 177-230)
+sed -n '177,230p' src/components/assessment/DiagnosisResultsPage.tsx
 
-# Verificar componentes de formulário
-grep -r "input type=\"email\"" src/
-grep -r "checkbox" src/
+# Estudar padrão de mutations
+cat src/graphql/queries.ts | grep -A 20 "mutation"
+
+# Estudar padrão de useMutation
+cat src/components/assessment/ResponsiveAssessment.tsx | head -50
+
+# Verificar estrutura de componentes
+ls -la src/components/assessment/
 
 # Ler AGENTS.md
 cat AGENTS.md
 ```
 
 **Perguntas para Responder Antes de Implementar:**
-- Qual página de resultados está ativa? (V1 ou V2)
-- Qual padrão de formulário é usado?
-- Como mutations são definidas?
-- Como useMutation é chamado?
-- Qual padrão de feedback visual (toast, inline, modal)?
-- Onde está o botão "Falar com o Mentor"?
+- ✅ **RESPOSTA:** Página ativa é `DiagnosisResultsPage.tsx` (V2)
+- ✅ **RESPOSTA:** Botão "Falar com Mentor" está em linhas 177-230
+- ✅ **RESPOSTA:** Mutations em `src/graphql/queries.ts`
+- ✅ **RESPOSTA:** Padrão: `export const NOME = gql\`mutation...\``
+- ❓ Como validar email no frontend? (useState ou useForm?)
+- ❓ Onde colocar mutation (queries.ts - confirmar)
+- ❓ Feedback: inline message ou toast?
+
+**O que SUBSTITUIR:**
+- **TODO O BLOCO** das linhas 177-230 (seção "CTA para Mentoria")
+- Substituir por formulário de lead com mesma estrutura visual
 
 ### **2. CRIAR BRANCH**
 
@@ -412,56 +425,97 @@ mv Development/TODO/024__Frontend-Lead-Form-Results.md \
 
 ---
 
-## 🎨 SUGESTÃO DE DESIGN (Apenas Inspiração)
+## 🎨 DESIGN - SEGUIR PADRÃO EXISTENTE
 
+### **SUBSTITUIR Bloco Existente (linhas 177-230):**
+
+**De (REMOVER):**
 ```tsx
-<section className="mt-12 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">
-  <h3 className="text-xl font-bold text-gray-800">
+{/* CTA para Mentoria */}
+<div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 sm:p-10 ...">
+  <h3>Pronto para acelerar seu desenvolvimento?</h3>
+  ...
+  <button>Falar com Mentor no WhatsApp</button>
+</div>
+```
+
+**Para (CRIAR):**
+```tsx
+{/* Formulário de Lead - Captura de Interesse */}
+<div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 sm:p-10 shadow-xl border-2 border-indigo-200 text-center animate-slide-up">
+  <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">
     💌 Fique por dentro da MoverseMais
   </h3>
-  <p className="mt-2 text-gray-600">
-    Deixe seu email para receber novidades sobre a evolução da plataforma.
+  <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto mb-6">
+    Deixe seu email para receber novidades sobre a evolução da plataforma para líderes de tecnologia.
   </p>
   
-  <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+  <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-4">
+    {/* Input Email */}
     <input
       type="email"
       placeholder="seu@email.com"
-      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+      className="w-full px-4 py-3 border-2 border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-lg"
       value={email}
       onChange={(e) => setEmail(e.target.value)}
+      required
     />
     
-    <label className="flex items-start gap-2">
-      <input type="checkbox" checked={platformNews} onChange={...} />
-      <span className="text-sm text-gray-700">
-        Tenho interesse em receber notícias sobre a evolução da plataforma...
+    {/* Checkbox 1 - Platform News */}
+    <label className="flex items-start gap-3 text-left bg-white/70 rounded-lg p-4 border border-indigo-100 cursor-pointer hover:bg-white transition-colors">
+      <input 
+        type="checkbox" 
+        checked={optInPlatformNews} 
+        onChange={(e) => setOptInPlatformNews(e.target.checked)}
+        className="mt-1 w-5 h-5 text-indigo-600"
+      />
+      <span className="text-sm sm:text-base text-gray-700">
+        Tenho interesse em receber notícias sobre a evolução da plataforma MoverseMais para líderes de tecnologia
       </span>
     </label>
     
-    <label className="flex items-start gap-2">
-      <input type="checkbox" checked={blogNews} onChange={...} />
-      <span className="text-sm text-gray-700">
+    {/* Checkbox 2 - Blog News */}
+    <label className="flex items-start gap-3 text-left bg-white/70 rounded-lg p-4 border border-indigo-100 cursor-pointer hover:bg-white transition-colors">
+      <input 
+        type="checkbox" 
+        checked={optInBlogNews} 
+        onChange={(e) => setOptInBlogNews(e.target.checked)}
+        className="mt-1 w-5 h-5 text-indigo-600"
+      />
+      <span className="text-sm sm:text-base text-gray-700">
         Quero receber notícias do blog da MoverseMais
       </span>
     </label>
     
+    {/* Botão Submit */}
     <button
       type="submit"
       disabled={loading}
-      className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700"
+      className="w-full px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full font-bold text-lg hover:shadow-2xl hover:shadow-indigo-500/30 hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      {loading ? "Cadastrando..." : "Cadastrar Interesse"}
+      {loading ? 'Cadastrando...' : 'Cadastrar Interesse'}
     </button>
+    
+    {/* Feedback Messages */}
+    {successMessage && (
+      <p className="text-green-600 font-medium">✅ {successMessage}</p>
+    )}
+    {errorMessage && (
+      <p className="text-red-600 font-medium">❌ {errorMessage}</p>
+    )}
   </form>
   
-  <p className="mt-4 text-xs text-gray-500">
+  <p className="text-xs text-gray-500 mt-6">
     Política de Privacidade | Você pode descadastrar a qualquer momento
   </p>
-</section>
+</div>
 ```
 
-**Nota:** Apenas sugestão! Você decide design final.
+**Notas:**
+- Classes Tailwind **IGUAIS** ao padrão existente (linhas 177-230)
+- Estrutura visual **CONSISTENTE** com seção de mentoria
+- Apenas trocar cores: verde → indigo/purple (tema MoverseMais)
+- Animação `animate-slide-up` já existe no projeto
 
 ---
 
