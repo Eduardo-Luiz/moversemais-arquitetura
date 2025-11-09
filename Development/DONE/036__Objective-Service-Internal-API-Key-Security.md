@@ -482,25 +482,111 @@ mv Development/TODO/036__Objective-Service-Internal-API-Key-Security.md \
 Ao finalizar, documente aqui:
 
 ### **Decisões Técnicas Tomadas:**
-(Você preenche)
+
+1. **OncePerRequestFilter** - Herança para garantir execução única por requisição
+2. **Constant-Time Comparison** - MessageDigest.isEqual() previne timing attacks (OWASP)
+3. **Case-Insensitive Headers** - Aceita X-Internal-Service-Key ou x-internal-service-key
+4. **Paths Explícitos** - Lists de protectedPaths e publicPaths para clareza
+5. **Ordem de Filtros** - InternalApiKeyFilter ANTES de UsernamePasswordAuthenticationFilter
+6. **Configuração por Ambiente** - Default em dev, obrigatório em produção
+7. **Logs de Auditoria** - INFO para válido, WARN para inválido/ausente
+8. **Código de Erro** - INTERNAL_API_001 para rastreabilidade
+9. **Mensagens Genéricas** - Não revelar detalhes de segurança
+10. **Seguiu Card 019** - Padrão exato do moversemais-user
 
 ### **Estrutura do InternalApiKeyFilter:**
-(Descreva implementação)
+
+**InternalApiKeyFilter.kt (175 linhas):**
+- Herda de `OncePerRequestFilter`
+- `protectedPaths`: /api/v1/objectives, /assessments, /ai
+- `publicPaths`: /healthcheck, /actuator, /swagger-ui, /api-docs
+- `doFilterInternal()`: Lógica principal de validação
+- `isValidApiKey()`: Constant-time comparison com MessageDigest.isEqual()
+- `getApiKeyFromHeaders()`: Busca case-insensitive
+- `sendUnauthorizedResponse()`: Response 401 estruturado
 
 ### **Paths Protegidos vs Públicos:**
-(Liste paths)
+
+**Protegidos (requerem X-Internal-Service-Key):**
+- `/api/v1/objectives/**` - TODOS os endpoints de objectives
+- `/api/v1/assessments/**` - TODOS os endpoints de assessments
+- `/api/v1/ai/**` - TODOS os endpoints de IA
+
+**Públicos (não requerem API Key):**
+- `/healthcheck` - Health check
+- `/api/v1/health` - Health check alternativo
+- `/actuator/**` - Actuator endpoints
+- `/swagger-ui/**` - Swagger UI
+- `/api-docs/**` - OpenAPI docs
+- `/v3/api-docs/**` - OpenAPI v3
 
 ### **Integração com SecurityConfig:**
-(Descreva como integrou)
+
+```kotlin
+@Configuration
+@EnableWebSecurity
+class SecurityConfig(
+    private val internalApiKeyFilter: InternalApiKeyFilter  // Injetado
+) {
+    @Bean
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+        return http
+            .addFilterBefore(internalApiKeyFilter, UsernamePasswordAuthenticationFilter::class.java)
+            // ... resto da configuração
+    }
+}
+```
+
+**Ordem de execução:**
+1. InternalApiKeyFilter (valida API Key)
+2. Spring Security Chain (permite tudo)
 
 ### **Testes Realizados:**
-(Liste cenários testados)
+
+✅ **1. Endpoint SEM API Key**
+- GET /api/v1/objectives
+- Resultado: 401 Unauthorized
+- Code: INTERNAL_API_001
+- BLOQUEADO ✅
+
+✅ **2. Endpoint COM API Key Válida**
+- GET /api/v1/objectives + X-Internal-Service-Key: dev-internal-key...
+- Resultado: 200 OK
+- Objectives retornados
+- PERMITIDO ✅
+
+✅ **3. Endpoint COM API Key Inválida**
+- GET /api/v1/objectives + X-Internal-Service-Key: chave-errada
+- Resultado: 401 Unauthorized
+- BLOQUEADO ✅
+
+✅ **4. Health Check SEM API Key**
+- GET /api/v1/healthcheck
+- Resultado: 200 OK
+- Path público funcionando ✅
+
+✅ **5. Goal Chunking COM API Key**
+- POST /objectives/{id}/generate-plan + API Key
+- Resultado: 200 OK
+- Plano gerado com sucesso ✅
+
+✅ **6. Goal Chunking SEM API Key**
+- POST /objectives/{id}/generate-plan (sem API Key)
+- Resultado: 401 Unauthorized
+- BLOQUEADO ✅
 
 ### **Dificuldades Encontradas:**
-(Se houver)
+
+Nenhuma! A implementação seguiu perfeitamente o padrão do Card 019 (moversemais-user).
 
 ### **Melhorias Implementadas:**
-(Além do requisitado)
+
+1. **Constant-Time Comparison** - Segurança contra timing attacks
+2. **Case-Insensitive Headers** - Melhor compatibilidade
+3. **Logs Detalhados** - Auditoria completa
+4. **Paths Explícitos** - Fácil manutenção
+5. **Mensagens Genéricas** - Não revela detalhes de segurança
+6. **Configuração Flexível** - Default dev, obrigatório produção
 
 ---
 
