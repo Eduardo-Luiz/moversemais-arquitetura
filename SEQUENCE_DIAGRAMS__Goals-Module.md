@@ -22,8 +22,10 @@ sequenceDiagram
     Note over User,AI: FASE 1: CRIAÇÃO DA META
 
     User->>FE: 1. Preenche formulário<br/>(título, prazo, tipo, motivo, contexto)
-    User->>FE: 2. Seleciona modo: AUTO (IA)
-    User->>FE: 3. Clica "Criar Meta com IA"
+    User->>FE: 2. Seleciona modo:<br/>[ ] AUTO (IA gera plano)<br/>[ ] MANUAL (criar depois)
+    
+    alt Modo AUTO (IA)
+        User->>FE: 3a. Clica "Criar Meta com IA"
     
     FE->>BFF: 4. Mutation: createObjective<br/>{title, dates, type, motive, context, mode: AUTO}
     
@@ -96,6 +98,25 @@ sequenceDiagram
         User->>FE: 30b. Clica "Aprovar e Ativar"
         FE->>FE: 31b. Redireciona para lista de metas
         FE->>User: 32b. Sucesso: "Meta criada com plano estruturado!"
+    end
+    
+    else Modo MANUAL (Usuário cria)
+        User->>FE: 3b. Clica "Criar Meta Manual"
+        
+        FE->>BFF: 4b. Mutation: createObjective<br/>{title, dates, type, motive, context, mode: MANUAL}
+        
+        BFF->>BE: 5b. POST /objectives<br/>Headers: X-User-Id, X-Internal-Service-Key
+        
+        BE->>DB: 6b. INSERT INTO objectives<br/>(title, motive, context, mode=MANUAL, status=ACTIVE)
+        DB-->>BE: 7b. Objective created (id: uuid)
+        
+        BE-->>BFF: 8b. Response: {objectiveId, status: ACTIVE}
+        BFF-->>FE: 9b. Response: {objectiveId}
+        
+        FE->>FE: 10b. Redireciona para lista de metas
+        FE->>User: 11b. Sucesso: "Meta criada!<br/>Você pode adicionar etapas e ações depois."
+        
+        Note over User,FE: FUTURO: Interface para criar<br/>etapas/ações manualmente<br/>(não implementado nesta Sprint)
     end
 ```
 
@@ -232,14 +253,24 @@ sequenceDiagram
 
 ### **Diagrama 1 - Goal Chunking (PRD 001)**
 
-**Fases Identificadas:**
-1. ✅ **Criação da Meta** - Frontend → BFF → Backend → DB
+**2 Fluxos Identificados:**
+
+#### **Fluxo A: Modo AUTO (IA gera plano)**
+1. ✅ **Criação da Meta** - Frontend → BFF → Backend → DB (mode=AUTO, status=DRAFT)
 2. ✅ **Geração do Plano pela IA** - Backend → ChatGPT → Parsing
 3. ✅ **Salvar Plano no Banco** - Transaction com stages, actions, key_results, action_kr_links
 4. ✅ **Revisão e Aprovação** - Frontend exibe plano, usuário aprova ou regenera
+5. ✅ **Ativação** - status=DRAFT → status=ACTIVE
+
+#### **Fluxo B: Modo MANUAL (Usuário cria depois)**
+1. ✅ **Criação da Meta** - Frontend → BFF → Backend → DB (mode=MANUAL, status=ACTIVE)
+2. ✅ **Meta criada SEM plano** - Apenas objective, sem stages/actions/KRs
+3. ⏸️ **Interface Manual (FUTURO)** - Usuário cria etapas/ações depois
+4. ⏸️ **Não implementado nesta Sprint** - Foco em modo AUTO
 
 **Pontos Críticos:**
-- Meta criada com `status=DRAFT` antes de gerar plano
+- **Modo AUTO:** Meta criada com `status=DRAFT` → gera plano → aprova → `status=ACTIVE`
+- **Modo MANUAL:** Meta criada com `status=ACTIVE` → SEM plano (stages/actions/KRs vazios)
 - Plano gerado em transação (tudo ou nada)
 - Vinculações action ↔ KR criadas automaticamente pela IA
 - Regenerar = deletar plano antigo (CASCADE) + gerar novo
@@ -277,9 +308,35 @@ sequenceDiagram
 - Tabela `objectives` atual tem `status`: ACTIVE, CONCLUDED, ARCHIVED
 - **NÃO TEM `DRAFT`!**
 
-**Decisão Necessária:**
-- Adicionar `DRAFT` ao enum Status?
-- Ou criar meta já como `ACTIVE` (mesmo sem plano)?
+**Opções:**
+
+**Opção A: Adicionar DRAFT ao enum Status**
+```sql
+-- Migration V031
+ALTER TABLE objectives DROP CONSTRAINT IF EXISTS chk_status;
+ALTER TABLE objectives ADD CONSTRAINT chk_status 
+    CHECK (status IN ('DRAFT', 'ACTIVE', 'CONCLUDED', 'ARCHIVED'));
+```
+- ✅ Segue PRD 001 fielmente
+- ✅ Separa meta em criação (DRAFT) de meta ativa (ACTIVE)
+- ❌ Altera enum existente (pode impactar código)
+
+**Opção B: Usar ACTIVE para ambos**
+- Modo AUTO: criar como ACTIVE, gerar plano, manter ACTIVE
+- Modo MANUAL: criar como ACTIVE, sem plano
+- ✅ Não altera enum existente
+- ✅ Mais simples
+- ❌ Não diferencia meta em criação de meta ativa
+
+**Opção C: Usar campo separado (has_plan)**
+- Adicionar campo `has_plan: BOOLEAN` em objectives
+- Modo AUTO: has_plan=false → gera plano → has_plan=true
+- Modo MANUAL: has_plan=false (sem plano)
+- ✅ Não altera enum
+- ✅ Indica se meta tem plano gerado
+- ❌ Campo adicional
+
+**DECISÃO NECESSÁRIA: Eduardo, qual opção você prefere?**
 
 ---
 

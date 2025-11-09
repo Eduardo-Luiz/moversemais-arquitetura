@@ -111,7 +111,58 @@ Próximo:
 
 ## 🎯 REQUISITOS OBRIGATÓRIOS
 
-### **1. GoalChunkingService - IA Gera Plano**
+### **PARTE 1: Migration V031 - Adicionar Status DRAFT**
+
+**Função de Negócio:**
+Adicionar status `DRAFT` ao enum Status de objectives para diferenciar metas em criação (sem plano) de metas ativas (com plano).
+
+**Requisitos Funcionais:**
+- Criar migration `V031__add_draft_status_to_objectives.sql`
+- Adicionar `DRAFT` ao constraint CHECK de status
+- Atualizar enum `Status.kt` no Kotlin (adicionar DRAFT)
+
+**Lógica de Status:**
+- **DRAFT:** Meta criada, aguardando geração de plano (rascunho)
+- **ACTIVE:** Meta com plano ativo (etapas/ações/KRs)
+- **CONCLUDED:** Meta concluída (100%)
+- **ARCHIVED:** Meta arquivada
+
+**Fluxos:**
+- **Modo AUTO:** Cria meta (DRAFT) → IA gera plano → Aprova → ACTIVE
+- **Modo MANUAL:** Cria meta (DRAFT) → Usuário cria plano depois → ACTIVE
+
+**Migration SQL (você decide estrutura exata):**
+```sql
+-- V031__add_draft_status_to_objectives.sql
+ALTER TABLE objectives DROP CONSTRAINT IF EXISTS chk_status;
+ALTER TABLE objectives ADD CONSTRAINT chk_status 
+    CHECK (status IN ('DRAFT', 'ACTIVE', 'CONCLUDED', 'ARCHIVED'));
+```
+
+**Enum Kotlin (você decide estrutura exata):**
+```kotlin
+enum class Status {
+    DRAFT,      // NOVO - Meta sem plano (rascunho)
+    ACTIVE,     // Meta ativa com plano
+    CONCLUDED,  // Meta concluída
+    ARCHIVED    // Meta arquivada
+}
+```
+
+**Você decide:**
+- Estrutura exata da migration
+- Ordem dos valores no enum
+- Se adiciona métodos auxiliares (isDraft, etc.)
+- Se atualiza queries existentes (se necessário)
+- Comentários SQL
+
+**Restrições:**
+- NÃO alterar migrations existentes (V1-V030)
+- NÃO quebrar código existente (metas ACTIVE continuam funcionando)
+
+---
+
+### **PARTE 2: GoalChunkingService - IA Gera Plano**
 
 **Função de Negócio:**
 Transformar uma meta (objective) em plano estruturado usando ChatGPT.
@@ -119,7 +170,7 @@ Transformar uma meta (objective) em plano estruturado usando ChatGPT.
 **Requisitos Funcionais:**
 - Buscar objective por ID (usar ObjectiveRepository)
 - Validar que objective existe e pertence ao usuário
-- Validar que objective tem mode = 'AUTO' (Goal Chunking)
+- **Validar que objective está em status DRAFT** (apenas rascunhos podem gerar plano)
 - Montar prompt estruturado para ChatGPT incluindo:
   - Título da meta (objectiveText)
   - Motivo (motive) - por que importa
@@ -129,11 +180,12 @@ Transformar uma meta (objective) em plano estruturado usando ChatGPT.
 - Chamar ChatGPT solicitando JSON estruturado
 - Parsear resposta da IA (JSON → objetos Kotlin)
 - Validar estrutura do plano gerado
-- Salvar no banco usando repositories da Sprint 1:
+- Salvar no banco usando repositories da Sprint 1 (em TRANSAÇÃO):
   - StageRepository
   - ActionRepository
   - KeyResultRepository
   - ActionKrLinkRepository
+- **Atualizar objective: status = ACTIVE** (meta agora tem plano)
 - Retornar plano completo
 
 **Estrutura do JSON esperado da IA:**
@@ -274,7 +326,7 @@ RESPONDA APENAS COM JSON VÁLIDO:
 
 ---
 
-### **2. Endpoint POST /objectives/{id}/generate-plan**
+### **PARTE 3: Endpoint POST /objectives/{id}/generate-plan**
 
 **Função de Negócio:**
 Permitir que BFF solicite geração de plano para uma meta específica.
@@ -306,16 +358,18 @@ Permitir que BFF solicite geração de plano para uma meta específica.
 - **Response 404:** Objective não encontrado
 - **Response 403:** Objective não pertence ao usuário
 - **Response 400:** 
-  - Objective não está em modo AUTO
-  - Objective sem motive/context (recomendar preencher)
+  - **Objective não está em status DRAFT** (apenas rascunhos podem gerar plano)
+  - Objective sem motive/context (recomendar preencher, mas não bloquear)
   - Plano já existe e regenerate=false
 - **Response 500:** Erro ao chamar IA ou salvar dados
 
 **Comportamento:**
+- **Validar status DRAFT:** Apenas objectives em DRAFT podem gerar plano
 - Se objective já tem plano (stages existentes):
   - Se `regenerate=false`: retornar erro 400 "Plano já existe"
   - Se `regenerate=true`: deletar plano antigo (cascade) e gerar novo
 - Se objective não tem plano: gerar novo
+- **Após gerar plano com sucesso:** atualizar status = ACTIVE
 - Validar X-Internal-Service-Key (segurança)
 - Validar X-User-Id (ownership)
 
@@ -333,7 +387,7 @@ Permitir que BFF solicite geração de plano para uma meta específica.
 
 ---
 
-### **3. DTOs (Data Transfer Objects)**
+### **PARTE 4: DTOs (Data Transfer Objects)**
 
 **Criar DTOs para Request/Response:**
 
@@ -502,12 +556,14 @@ git checkout -b feature/goals-chunking-backend
 **Você é o especialista em Spring Boot + Kotlin + IA.**
 
 **Ordem sugerida (você pode mudar):**
-1. GoalChunkingService (lógica principal)
-2. DTOs (request, response)
-3. UseCase (se seguir Clean Architecture)
-4. Controller/Endpoint
-5. Exception handling
-6. Testes
+1. **Migration V031** (adicionar DRAFT ao status)
+2. **Atualizar Status.kt** (adicionar DRAFT ao enum)
+3. **GoalChunkingService** (lógica principal)
+4. **DTOs** (request, response)
+5. **UseCase** (se seguir Clean Architecture)
+6. **Controller/Endpoint**
+7. **Exception handling**
+8. **Testes**
 
 **Decisões técnicas que você toma:**
 - Estrutura de classes e métodos
@@ -551,9 +607,16 @@ SELECT * FROM action_kr_links;
 # 4. Testar validações
 # - Objective não encontrado (404)
 # - Objective de outro usuário (403)
-# - Objective sem motive/context (400)
+# - Objective não está em DRAFT (400) - CRÍTICO!
+# - Objective sem motive/context (warning, mas permite)
 # - Plano já existe (400)
 # - Regenerar plano (200)
+
+# 5. Testar transição de status
+# - Objective DRAFT → gera plano → ACTIVE
+SELECT status FROM objectives WHERE id = '{id}';
+# Antes: DRAFT
+# Depois: ACTIVE
 
 # 5. Testar resposta da IA
 # - JSON válido?
@@ -562,10 +625,14 @@ SELECT * FROM action_kr_links;
 ```
 
 **Verificações:**
+- [ ] Migration V031 executada (DRAFT adicionado)
+- [ ] Enum Status.kt atualizado (DRAFT adicionado)
 - [ ] Endpoint responde 200
 - [ ] Plano gerado pela IA é válido
 - [ ] Dados salvos no banco (stages, actions, key_results, action_kr_links)
+- [ ] **Status atualizado: DRAFT → ACTIVE** (CRÍTICO!)
 - [ ] Validações funcionam (mínimo 1 etapa, 3 ações, 1 KR)
+- [ ] Validação de status DRAFT funciona (400 se não DRAFT)
 - [ ] Soma dos weights = 1.0 (ou próximo)
 - [ ] linkedKRs corretos
 - [ ] Erros tratados (404, 403, 400, 500)
@@ -589,13 +656,16 @@ Ao final do card, documente:
 git add .
 git commit -m "feat(objective-service): implementa Goal Chunking com IA
 
+- Migration V031: adiciona status DRAFT ao enum
+- Atualiza Status.kt (DRAFT adicionado)
 - GoalChunkingService (IA gera plano estruturado)
 - Endpoint POST /objectives/{id}/generate-plan
 - DTOs (GoalPlanRequest, GoalPlanResponse)
 - UseCase (se aplicável)
 - Integração com ChatGPT
-- Validações (mínimo 1 etapa, 3 ações, 1 KR)
+- Validações (status DRAFT, mínimo 1 etapa, 3 ações, 1 KR)
 - Salva no banco (stages, actions, key_results, action_kr_links)
+- Atualiza status: DRAFT → ACTIVE após gerar plano
 - Tratamento de erros
 - Testes realizados
 - Ref: Card 035"
