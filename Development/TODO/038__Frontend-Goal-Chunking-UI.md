@@ -120,45 +120,67 @@ FASE 4: Revisão e Aprovação (apenas AUTO)
 
 ## 🎯 REQUISITOS OBRIGATÓRIOS
 
-### **PARTE 1: Simplificar Menu Lateral (Navigation.tsx)**
+### **PARTE 1: Simplificar Menus (Navigation.tsx + NavigationBar.tsx)**
 
 **Função de Negócio:**
-Remover funcionalidades não prontas do menu para não confundir o usuário.
+Remover funcionalidades não prontas dos menus para não confundir o usuário.
 
-**Menu Atual (Navigation.tsx - linha 24-65):**
+**2 Componentes de Menu Identificados:**
+
+**1. Navigation.tsx (Menu Lateral - Desktop) - linha 24-65:**
 ```typescript
 menuItems = [
-  { id: 'dashboard', icon: '🏠', path: '/dashboard' },
+  { id: 'dashboard', icon: '🏠', path: '/dashboard' },  // ❌ NÃO PRONTO
   { id: 'assessment', icon: '📊', path: '/assessment' },
   { id: 'goals', icon: '🎯', path: '/goals' },
-  { id: 'timeline', icon: '📈', path: '/timeline' },
+  { id: 'timeline', icon: '📈', path: '/timeline' },  // ❌ NÃO PRONTO
   { id: 'planning', icon: '📅', path: '/planning', submenu: [...] },  // ❌ NÃO PRONTO
   { id: 'checkin', icon: '✅', path: '/checkin' },  // ❌ NÃO PRONTO
 ]
 ```
 
-**Menu Simplificado (deve ficar):**
+**2. NavigationBar.tsx (Tab Bar - Mobile) - linha 24-88:**
 ```typescript
+tabItems = [
+  { id: 'dashboard', icon: <svg>...</svg>, label: 'Home', path: '/dashboard' },  // ❌ NÃO PRONTO
+  { id: 'goals', icon: <svg>...</svg>, label: 'Objetivos', path: '/goals' },
+  { id: 'timeline', icon: <svg>...</svg>, label: 'Timeline', path: '/timeline' },  // ❌ NÃO PRONTO
+  { id: 'planning-weekly', icon: <svg>...</svg>, label: 'Planejar Semana', path: '/planning/weekly' },  // ❌ NÃO PRONTO
+  { id: 'planning-daily', icon: <svg>...</svg>, label: 'Planejar Dia', path: '/planning/daily' },  // ❌ NÃO PRONTO
+  { id: 'checkin', icon: <svg>...</svg>, label: 'Check-in', path: '/checkin' },  // ❌ NÃO PRONTO
+]
+```
+
+**Menus Simplificados (ambos devem ficar):**
+```typescript
+// Navigation.tsx (Desktop)
 menuItems = [
   { id: 'assessment', icon: '📊', path: '/assessment', tooltip: 'Assessment' },
   { id: 'goals', icon: '🎯', path: '/goals', tooltip: 'Metas' },
-  // Remover: dashboard, timeline, planning, checkin, retrospective
+]
+
+// NavigationBar.tsx (Mobile)
+tabItems = [
+  { id: 'assessment', icon: <svg>...</svg>, label: 'Assessment', path: '/assessment' },
+  { id: 'goals', icon: <svg>...</svg>, label: 'Metas', path: '/goals' },
 ]
 ```
 
 **Requisitos:**
+- **Atualizar 2 arquivos:** Navigation.tsx (desktop) + NavigationBar.tsx (mobile)
 - Manter apenas: Assessment e Metas (Goals)
-- Remover: Dashboard, Timeline, Planning, Check-in, Retrospective
+- Remover: Dashboard, Timeline, Planning (weekly/daily), Check-in, Retrospective
 - Menu limpo e focado
 
 **Você decide:**
-- Se mantém dashboard (overview simples)
-- Ordem dos itens
-- Ícones e tooltips
+- Ordem dos itens (Assessment primeiro ou Goals primeiro?)
+- Ícones e labels
+- Se mantém algum item adicional
 
 **Restrições:**
 - NÃO quebrar navegação existente
-- NÃO remover rotas do App.tsx (apenas do menu)
+- NÃO remover rotas do App.tsx (apenas dos menus)
+- Atualizar AMBOS os componentes (desktop + mobile)
 
 ---
 
@@ -465,9 +487,10 @@ export const GET_GOAL_WITH_PLAN = gql`
    - `src/components/CreateGoalPage.tsx` (434 linhas)
    - Formulário atual, estrutura, validações
 
-2. **Menu Lateral:**
-   - `src/components/Navigation.tsx` (237 linhas)
-   - menuItems (linha 24-65)
+2. **Menus (2 componentes):**
+   - `src/components/Navigation.tsx` (237 linhas - menu lateral desktop)
+   - `src/components/NavigationBar.tsx` (150 linhas - tab bar mobile)
+   - menuItems e tabItems (ambos precisam ser simplificados)
 
 3. **Rotas:**
    - `src/App.tsx` (258 linhas)
@@ -501,8 +524,9 @@ cd moversemais-store-front
 # Estudar CreateGoalPage
 cat src/components/CreateGoalPage.tsx
 
-# Estudar Navigation
+# Estudar Menus (2 componentes)
 cat src/components/Navigation.tsx
+cat src/components/NavigationBar.tsx
 
 # Estudar App.tsx (rotas)
 cat src/App.tsx
@@ -568,9 +592,10 @@ npm run dev
 # 2. Fazer login
 # http://localhost:5173
 
-# 3. Verificar menu simplificado
-# Deve mostrar apenas: Assessment, Metas
-# NÃO deve mostrar: Dashboard, Timeline, Planning, Check-in
+# 3. Verificar menus simplificados (desktop + mobile)
+# Navigation.tsx (desktop): Deve mostrar apenas Assessment, Metas
+# NavigationBar.tsx (mobile): Deve mostrar apenas Assessment, Metas
+# NÃO deve mostrar: Dashboard, Timeline, Planning, Check-in, Retrospective
 
 # 4. Testar criação modo MANUAL
 # - Acessar /goals/create
@@ -610,7 +635,8 @@ npm run dev
 ```
 
 **Verificações:**
-- [ ] Menu simplificado (apenas Assessment e Metas)
+- [ ] Navigation.tsx simplificado (apenas Assessment e Metas)
+- [ ] NavigationBar.tsx simplificado (apenas Assessment e Metas)
 - [ ] CreateGoalPage tem campos motive, context, mode
 - [ ] Modo MANUAL funciona (cria meta ACTIVE)
 - [ ] Modo AUTO funciona (cria DRAFT → gera plano → ACTIVE)
